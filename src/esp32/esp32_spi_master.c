@@ -18,8 +18,8 @@
 
 #include "common/cs_dbg.h"
 
-#include "fw/src/mgos_hal.h"
-#include "fw/src/mgos_sys_config.h"
+#include "mgos_hal.h"
+#include "mgos_sys_config.h"
 
 /* We use AHB addr to avoid https://github.com/espressif/esp-idf/issues/595 */
 #define ESP32_SPI2_AHB_BASE 0x60024000

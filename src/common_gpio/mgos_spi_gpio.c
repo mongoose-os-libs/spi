@@ -11,9 +11,9 @@
 
 #include "mgos_spi.h"
 
-#include "fw/src/mgos_gpio.h"
-#include "fw/src/mgos_hal.h"
-#include "fw/src/mgos_sys_config.h"
+#include "mgos_gpio.h"
+#include "mgos_hal.h"
+#include "mgos_sys_config.h"
 
 #include "common/cs_dbg.h"
 
