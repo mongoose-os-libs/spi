@@ -70,8 +70,7 @@ out_err:
 
 bool mgos_spi_configure(struct mgos_spi *c, const struct sys_config_spi *cfg) {
   if (cfg->miso_gpio >= 0 &&
-      mgos_gpio_set_mode(cfg->miso_gpio, MGOS_GPIO_MODE_INPUT) &&
-      mgos_gpio_set_pull(cfg->miso_gpio, MGOS_GPIO_PULL_UP)) {
+      mgos_gpio_set_mode(cfg->miso_gpio, MGOS_GPIO_MODE_INPUT)) {
     c->miso_gpio = cfg->miso_gpio;
   } else {
     return false;
