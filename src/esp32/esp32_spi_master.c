@@ -130,19 +130,24 @@ bool mgos_spi_configure(struct mgos_spi *c, const struct sys_config_spi *cfg) {
 }
 
 /* See SPI_CLOCK_REG description in the TRM. */
-static bool mgos_spi_set_freq(struct mgos_spi *c, int freq) {
+static bool esp32_spi_set_freq(struct mgos_spi *c, int freq) {
   if (c->freq == freq) return true;
   spi_dev_t *dev = c->dev;
   int pre, cnt_n;
-  if (freq >= APB_CLK_FREQ / 2 && !c->native_pins) {
-    /* APB_CLK / 2 and above freqs cannot be routed via GPIO matrix. */
+  if (freq > APB_CLK_FREQ) {
+    return false;
+  } else if (freq >= APB_CLK_FREQ / 2 && !c->native_pins) {
+    LOG(LL_INFO, ("SPI frequencies %d and above are only available when using "
+                  "native pin to pad mapping.",
+                  APB_CLK_FREQ / 2));
     return false;
   }
+  dev->clock.val = 0;
   switch (freq) {
     case APB_CLK_FREQ:
-      dev->clock.val = 0;
-      dev->clock.clk_equ_sysclk = true;
-      return true;
+      pre = 0;
+      cnt_n = 0;
+      break;
     case APB_CLK_FREQ / 2:
       pre = 0;
       cnt_n = 1;
@@ -168,14 +173,19 @@ static bool mgos_spi_set_freq(struct mgos_spi *c, int freq) {
       cnt_n = 3;
       break;
   }
-  int cnt_h = (cnt_n + 1) / 2 - 1;
-  dev->clock.val = 0;
+  int cnt_h = 0;
+  if (cnt_n > 0) {
+    cnt_h = (cnt_n + 1) / 2 - 1;
+    c->eff_freq = APB_CLK_FREQ / ((pre + 1) * (cnt_n + 1));
+  } else {
+    dev->clock.clk_equ_sysclk = true;
+    c->eff_freq = APB_CLK_FREQ;
+  }
   dev->clock.clkdiv_pre = pre;
   dev->clock.clkcnt_n = cnt_n;
   dev->clock.clkcnt_h = cnt_h;
   dev->clock.clkcnt_l = cnt_n; /* Per TRM, cnt_l = cnt_n */
   c->freq = freq;
-  c->eff_freq = APB_CLK_FREQ / ((pre + 1) * (cnt_n + 1));
   if (c->debug) {
     LOG(LL_DEBUG, ("freq %d => pre %d cnt_n %d cnt_h %d => eff_freq %u", freq,
                    pre, cnt_n, cnt_h, c->eff_freq));
@@ -183,7 +193,7 @@ static bool mgos_spi_set_freq(struct mgos_spi *c, int freq) {
   return true;
 }
 
-static bool mgos_spi_set_mode(struct mgos_spi *c, int mode) {
+static bool esp32_spi_set_mode(struct mgos_spi *c, int mode) {
   spi_dev_t *dev = c->dev;
   /* See TRM, section 5.4.1, table 23 */
   int idle_edge, out_edge, delay_mode;
@@ -213,7 +223,8 @@ static bool mgos_spi_set_mode(struct mgos_spi *c, int mode) {
   }
   dev->pin.ck_idle_edge = idle_edge;
   dev->user.ck_out_edge = out_edge;
-  dev->ctrl2.miso_delay_mode = delay_mode;
+  dev->ctrl2.miso_delay_mode =
+      (c->eff_freq >= APB_CLK_FREQ / 2 ? 0 : delay_mode);
   dev->ctrl2.miso_delay_num = 0;
   dev->ctrl2.mosi_delay_mode = 0;
   dev->ctrl2.mosi_delay_num = 0;
@@ -256,7 +267,7 @@ static void esp32_spi_txn_setup_common(struct mgos_spi *c) {
   dev->user.cs_setup = true;
   dev->ctrl2.setup_time = 0;          /* 1 CS setup cycle */
   dev->user.usr_mosi_highpart = true; /* 0-7 for RX, 8-15 for TX */
-  if (c->eff_freq >= APB_CLK_FREQ / 2) {
+  if (c->eff_freq >= APB_CLK_FREQ / 2 && !c->native_pins) {
     /* Add a dummy cycle (user1.usr_dummy_cyclelen is set to 0 below). */
     dev->user.usr_dummy = true;
   }
@@ -375,10 +386,10 @@ bool mgos_spi_run_txn(struct mgos_spi *c, bool full_duplex,
     default:
       return false;
   }
-  if (!mgos_spi_set_mode(c, txn->mode)) {
+  if (txn->freq > 0 && !esp32_spi_set_freq(c, txn->freq)) {
     return false;
   }
-  if (txn->freq > 0 && !mgos_spi_set_freq(c, txn->freq)) {
+  if (!esp32_spi_set_mode(c, txn->mode)) {
     return false;
   }
   if (full_duplex) {
