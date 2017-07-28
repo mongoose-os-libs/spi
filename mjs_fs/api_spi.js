@@ -26,6 +26,8 @@ let SPI = {
   //
   // `spi` is an SPI instance, e.g. the one returned by `SPI.get()`.
   // `param` is an object with the following parameters:
+  //
+  // ```javascript
   // {
   //   // Which CS line to use, 0, 1 or 2. use -1 to not assert any CS
   //   // during transaction, it is assumed to be done externally.
@@ -64,6 +66,7 @@ let SPI = {
   //     tx_data: "foobar",
   //   },
   // }
+  // ```
   //
   // Return value: a string with the data read (an empty string if no read was
   // requested), or `false` in case of an error.
