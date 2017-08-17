@@ -24,4 +24,4 @@ conds:
         - ["spi.sclk_gpio", 18]
         - ["spi.cs0_gpio", 5]
 
-skeleton_version: 2017-06-16
+manifest_version: 2017-06-16
