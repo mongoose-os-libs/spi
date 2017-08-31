@@ -1,5 +1,5 @@
 build_vars:
-  # No HW SPI support on CC3200, for now.
+  # No HW SPI support on CC3220, for now.
   MGOS_ENABLE_SPI_GPIO: 1
 
 conds:
