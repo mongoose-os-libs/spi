@@ -7,6 +7,8 @@ platforms: [ cc3200, cc3220, esp32, esp8266 ]
 
 sources:
   - src
+includes:
+  - include
 
 build_vars:
   # Default implementation is a bit-banging one, using GPIO. It's slow but
