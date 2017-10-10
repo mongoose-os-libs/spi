@@ -26,10 +26,11 @@ extern "C" {
 struct mgos_spi;
 
 /* Initialize SPI master */
-struct mgos_spi *mgos_spi_create(const struct sys_config_spi *cfg);
+struct mgos_spi *mgos_spi_create(const struct mgos_config_spi *cfg);
 
 /* (Re)configure existing SPI interface. */
-bool mgos_spi_configure(struct mgos_spi *spi, const struct sys_config_spi *cfg);
+bool mgos_spi_configure(struct mgos_spi *spi,
+                        const struct mgos_config_spi *cfg);
 
 struct mgos_spi_txn {
   /* Which CS line to use, 0, 1 or 2. use -1 to not assert any CS

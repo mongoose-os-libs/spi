@@ -44,7 +44,7 @@ static inline void mgos_spi_half_delay(struct mgos_spi *c) {
   (mgos_nsleep100)(2);
 }
 
-struct mgos_spi *mgos_spi_create(const struct sys_config_spi *cfg) {
+struct mgos_spi *mgos_spi_create(const struct mgos_config_spi *cfg) {
   struct mgos_spi *c = (struct mgos_spi *) calloc(1, sizeof(*c));
   if (c == NULL) goto out_err;
 
@@ -68,7 +68,7 @@ out_err:
   return NULL;
 }
 
-bool mgos_spi_configure(struct mgos_spi *c, const struct sys_config_spi *cfg) {
+bool mgos_spi_configure(struct mgos_spi *c, const struct mgos_config_spi *cfg) {
   if (cfg->miso_gpio >= 0 &&
       mgos_gpio_set_mode(cfg->miso_gpio, MGOS_GPIO_MODE_INPUT)) {
     c->miso_gpio = cfg->miso_gpio;

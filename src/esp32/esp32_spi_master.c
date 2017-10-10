@@ -35,7 +35,7 @@ struct mgos_spi {
   unsigned int debug : 1;
 };
 
-struct mgos_spi *mgos_spi_create(const struct sys_config_spi *cfg) {
+struct mgos_spi *mgos_spi_create(const struct mgos_config_spi *cfg) {
   bool claimed = false;
   struct mgos_spi *c = (struct mgos_spi *) calloc(1, sizeof(*c));
   if (c == NULL) goto out_err;
@@ -88,7 +88,7 @@ out_err:
   return NULL;
 }
 
-bool mgos_spi_configure(struct mgos_spi *c, const struct sys_config_spi *cfg) {
+bool mgos_spi_configure(struct mgos_spi *c, const struct mgos_config_spi *cfg) {
   spi_dev_t *dev = c->dev;
 
   dev->slave.slave_mode = false;

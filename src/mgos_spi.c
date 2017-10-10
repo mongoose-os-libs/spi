@@ -8,9 +8,8 @@
 static struct mgos_spi *s_global_spi;
 
 bool mgos_spi_init(void) {
-  const struct sys_config_spi *cfg = &get_cfg()->spi;
-  if (!cfg->enable) return true;
-  s_global_spi = mgos_spi_create(cfg);
+  if (!mgos_sys_config_get_spi_enable()) return true;
+  s_global_spi = mgos_spi_create(mgos_sys_config_get_spi());
   return (s_global_spi != NULL);
 }
 
