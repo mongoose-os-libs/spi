@@ -4,9 +4,10 @@
  */
 
 /*
- * See on GitHub:
- * [mgos_spi.h](https://github.com/mongoose-os-libs/spi/blob/master/src/mgos_spi.h),
- * [mgos_spi.c](https://github.com/mongoose-os-libs/spi/blob/master/src/mgos_spi.c)
+ * SPI API.
+ *
+ * See https://en.wikipedia.org/wiki/Serial_Peripheral_Interface_Bus
+ * for the background information.
  */
 
 #ifndef CS_FW_SRC_MGOS_SPI_H_
@@ -25,7 +26,7 @@ extern "C" {
 
 struct mgos_spi;
 
-/* Initialize SPI master */
+/* Initialize SPI master. */
 struct mgos_spi *mgos_spi_create(const struct mgos_config_spi *cfg);
 
 /* (Re)configure existing SPI interface. */
@@ -85,10 +86,12 @@ struct mgos_spi_txn {
 bool mgos_spi_run_txn(struct mgos_spi *spi, bool full_duplex,
                       const struct mgos_spi_txn *txn);
 
+/* Close SPI handle. */
 void mgos_spi_close(struct mgos_spi *spi);
 
 bool mgos_spi_init(void);
 
+/* Return global SPI bus handle which is configured via sysconfig. */
 struct mgos_spi *mgos_spi_get_global(void);
 
 #ifdef __cplusplus
