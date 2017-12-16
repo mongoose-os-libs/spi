@@ -89,8 +89,6 @@ bool mgos_spi_run_txn(struct mgos_spi *spi, bool full_duplex,
 /* Close SPI handle. */
 void mgos_spi_close(struct mgos_spi *spi);
 
-bool mgos_spi_init(void);
-
 /* Return global SPI bus handle which is configured via sysconfig. */
 struct mgos_spi *mgos_spi_get_global(void);
 
