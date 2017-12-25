@@ -82,7 +82,10 @@ struct mgos_spi_txn {
   };
 };
 
-/* Execute a half-duplex transaction. */
+/*
+ * Execute a half-duplex transaction. See `struct mgos_spi_txn` for the details
+ * on transaction params.
+ */
 bool mgos_spi_run_txn(struct mgos_spi *spi, bool full_duplex,
                       const struct mgos_spi_txn *txn);
 
