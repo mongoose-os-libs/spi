@@ -13,11 +13,8 @@
 #ifndef CS_FW_SRC_MGOS_SPI_H_
 #define CS_FW_SRC_MGOS_SPI_H_
 
-#include "mgos_features.h"
-
 #include <stdint.h>
 
-#include "mgos_init.h"
 #include "mgos_sys_config.h"
 
 #ifdef __cplusplus
