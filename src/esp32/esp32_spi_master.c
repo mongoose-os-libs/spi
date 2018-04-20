@@ -113,13 +113,13 @@ bool mgos_spi_configure(struct mgos_spi *c, const struct mgos_config_spi *cfg) {
       .quadhd_io_num = -1,
   };
 
-  bool is_native;
+  uint32_t flags_out = 0;
   if (spicommon_bus_initialize_io(c->host, &bus_cfg, 0 /* dma_chan */,
                                   SPICOMMON_BUSFLAG_MASTER,
-                                  &is_native) != ESP_OK) {
+                                  &flags_out) != ESP_OK) {
     return false;
   }
-  c->native_pins = !!is_native;
+  c->native_pins = (flags_out & SPICOMMON_BUSFLAG_NATIVE_PINS) != 0;
 
   if (cfg->cs0_gpio >= 0) {
     spicommon_cs_initialize(c->host, cfg->cs0_gpio, 0,
