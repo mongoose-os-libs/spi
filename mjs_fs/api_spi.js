@@ -3,8 +3,8 @@ load('api_sys.js')
 let SPI = {
   _run: ffi('bool mgos_spi_run_txn(void *, bool, void *)'),
   _ctxn: ffi('void *mgos_spi_create_txn(int, int, int)'),
-  _shd: ffi('void *mgos_spi_set_hd_txn(void *, int, void *, int, int, void *)'),
-  _sfd: ffi('void *mgos_spi_set_fd_txn(void *, int, void *, void *)'),
+  _shd: ffi('void mgos_spi_set_hd_txn(void *, int, void *, int, int, void *)'),
+  _sfd: ffi('void mgos_spi_set_fd_txn(void *, int, void *, void *)'),
 
   // ## **`SPI.get()`**
   // Get SPI bus handle. Return value: opaque pointer.
@@ -46,10 +46,6 @@ let SPI = {
   //     // A string with data to transmit. If undefined, no data is transmitted.
   //     tx_data: "foobar",
   //
-  //     // Number of bytes in tx_data to transmit. If undefined,
-  //     // tx_data.length is assumed.
-  //     tx_len: 4,
-  //
   //     // Number of dummy bytes to wait for. If undefined, 0 is assumed.
   //     dummy_len: 1,
   //
@@ -59,11 +55,8 @@ let SPI = {
   //
   //   // Full-duplex transaction parameters
   //   fd: {
-  //     // Number of bytes to write and to read.
-  //     len: 3,
-  //
-  //     // A string with data to transmit.
-  //     tx_data: "foobar",
+  //     // A string with data to transmit. Equal number of bytes will be read.
+  //     tx_data: "foo",
   //   },
   // }
   // ```
@@ -92,37 +85,43 @@ let SPI = {
     );
 
     let is_fd = false;
-    let rx_buf, rx_len;
-
+    let tx_len = 0, tx_data = null;
+    let dummy_len = 0;
+    let rx_len = 0, rx_buf = null;
     if (param.fd) {
       /* Full-duplex */
       let fdp = param.fd;
       is_fd = true;
-
-      let len = fdp.len || 0;
-      rx_len = len;
-      let tx_data = fdp.tx_data || "";
-
-      rx_buf = Sys._sbuf(len);
-
-      this._sfd(txn, len, tx_data, rx_buf);
+      if (!fdp.tx_data) return false;
+      tx_data = fdp.tx_data;
+      rx_len = tx_data.length;
+      if (rx_len == 0) return false;
+      /* This string must survive between calls to _sfd and _run,
+       * force it to be un-inlined. Bleh. */
+      if (tx_data.length < 6) tx_data += "      ";
+      rx_buf = Sys._sbuf(rx_len);
     } else {
       /* Half-duplex */
       /* the presence of param.hd is checked above */
       let hdp = param.hd;
-
+      if (hdp.tx_data) {
+        tx_data = hdp.tx_data;
+        tx_len = tx_data.length;
+        if (tx_data.length < 6) {
+          tx_data += "      ";  // See above.
+        }
+      }
+      dummy_len = hdp.dummy_len || 0;
       rx_len = hdp.rx_len || 0;
-      rx_buf = Sys._sbuf(rx_len);
+      if (rx_len > 0) {
+        rx_buf = Sys._sbuf(rx_len);
+      }
+    }
 
-      let tx_data = hdp.tx_data || "";
-      let tx_len = hdp.tx_len || tx_data.length;
-
-      this._shd(
-        txn,
-        tx_len, tx_data,
-        hdp.dummy_len || 0,
-        rx_len, rx_buf
-      );
+    if (is_fd) {
+      this._sfd(txn, rx_len, tx_data, rx_buf);
+    } else {
+      this._shd(txn, tx_len, tx_data, dummy_len, rx_len, rx_buf);
     }
 
     // Run that transaction
@@ -132,12 +131,11 @@ let SPI = {
     Sys.free(txn);
 
     if (!res) {
-      // There was an error, return false
-      return res;
-    } else {
-      // Transaction went fine, return the data we've read (might be an empty
-      // string)
+      return false;
+    } else if (rx_buf) {
       return rx_buf.slice(0, rx_len);
+    } else {
+      return true;
     }
   },
 };
