@@ -325,7 +325,8 @@ static bool mgos_spi_run_txn_hd(struct mgos_spi *c, const void *tx_data,
                                 size_t rx_len) {
   spi_dev_t *dev = c->dev;
   if (c->debug) {
-    LOG(LL_DEBUG, ("tx_len %d rx_len %d", (int) tx_len, (int) rx_len));
+    LOG(LL_DEBUG, ("tx_len %d dummy_len %d rx_len %d", (int) tx_len,
+                   (int) dummy_len, (int) rx_len));
   }
   esp32_spi_txn_setup_common(c);
   dev->user.doutdin = false;
