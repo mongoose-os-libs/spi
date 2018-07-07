@@ -83,11 +83,14 @@ struct mgos_spi *mgos_spi_create(const struct mgos_config_spi *cfg) {
       break;
 #endif
     default:
+      LOG(LL_ERROR, ("Invalid unit_no %d", cfg->unit_no));
       goto out_err;
   }
   c->unit_no = cfg->unit_no;
 
   if (cfg->sclk_gpio < 0 || (cfg->miso_gpio < 0 && cfg->mosi_gpio < 0)) {
+    LOG(LL_ERROR, ("Invalid pin settings %d %d %d", cfg->sclk_gpio,
+                   cfg->miso_gpio, cfg->mosi_gpio));
     goto out_err;
   }
 

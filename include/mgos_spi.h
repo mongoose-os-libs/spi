@@ -25,7 +25,10 @@
 #ifndef CS_FW_SRC_MGOS_SPI_H_
 #define CS_FW_SRC_MGOS_SPI_H_
 
+#include <stdbool.h>
 #include <stdint.h>
+
+#include "common/mg_str.h"
 
 #include "mgos_sys_config.h"
 
@@ -103,6 +106,9 @@ void mgos_spi_close(struct mgos_spi *spi);
 
 /* Return global SPI bus handle which is configured via sysconfig. */
 struct mgos_spi *mgos_spi_get_global(void);
+
+bool mgos_spi_config_from_json(const struct mg_str cfg_json,
+                               struct mgos_config_spi *cfg);
 
 #ifdef __cplusplus
 }
