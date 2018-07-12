@@ -94,48 +94,31 @@ struct mgos_spi *mgos_spi_create(const struct mgos_config_spi *cfg) {
     goto out_err;
   }
 
-  GPIO_InitTypeDef gs = {
-      .Mode = GPIO_MODE_AF_PP,
-      .Pull = GPIO_PULLUP,
-      .Speed = GPIO_SPEED_FREQ_VERY_HIGH,
-  };
-
   if (cfg->miso_gpio >= 0) {
-    gs.Pin = STM32_PIN_MASK(cfg->miso_gpio);
-    gs.Alternate = STM32_PIN_AF(cfg->miso_gpio);
-    HAL_GPIO_Init(stm32_gpio_port_base(cfg->miso_gpio), &gs);
+    mgos_gpio_set_mode(cfg->miso_gpio, MGOS_GPIO_MODE_INPUT);
+    mgos_gpio_set_pull(cfg->miso_gpio, MGOS_GPIO_PULL_UP);
   }
   if (cfg->mosi_gpio >= 0) {
-    gs.Pin = STM32_PIN_MASK(cfg->mosi_gpio);
-    gs.Alternate = STM32_PIN_AF(cfg->mosi_gpio);
-    HAL_GPIO_Init(stm32_gpio_port_base(cfg->mosi_gpio), &gs);
+    mgos_gpio_set_mode(cfg->mosi_gpio, MGOS_GPIO_MODE_OUTPUT);
   }
   if (cfg->sclk_gpio >= 0) {
+    mgos_gpio_set_mode(cfg->sclk_gpio, MGOS_GPIO_MODE_OUTPUT);
     c->sclk_gpio = cfg->sclk_gpio;
-    gs.Pin = STM32_PIN_MASK(cfg->sclk_gpio);
-    gs.Alternate = STM32_PIN_AF(cfg->sclk_gpio);
-    HAL_GPIO_Init(stm32_gpio_port_base(cfg->sclk_gpio), &gs);
   }
-  gs.Alternate = 0;  // GPIO
-  gs.Mode = GPIO_MODE_OUTPUT_PP;
-  gs.Pull = GPIO_PULLUP;
   c->cs_gpio[0] = cfg->cs0_gpio;
   if (cfg->cs0_gpio >= 0) {
+    mgos_gpio_set_mode(cfg->cs0_gpio, MGOS_GPIO_MODE_OUTPUT);
     mgos_gpio_write(cfg->cs0_gpio, 1);
-    gs.Pin = STM32_PIN_MASK(cfg->cs0_gpio);
-    HAL_GPIO_Init(stm32_gpio_port_base(cfg->cs0_gpio), &gs);
   }
   c->cs_gpio[1] = cfg->cs1_gpio;
   if (cfg->cs1_gpio >= 0) {
-    mgos_gpio_write(cfg->cs2_gpio, 1);
-    gs.Pin = STM32_PIN_MASK(cfg->cs1_gpio);
-    HAL_GPIO_Init(stm32_gpio_port_base(cfg->cs0_gpio), &gs);
+    mgos_gpio_set_mode(cfg->cs1_gpio, MGOS_GPIO_MODE_OUTPUT);
+    mgos_gpio_write(cfg->cs1_gpio, 1);
   }
   c->cs_gpio[2] = cfg->cs2_gpio;
   if (cfg->cs2_gpio >= 0) {
+    mgos_gpio_set_mode(cfg->cs2_gpio, MGOS_GPIO_MODE_OUTPUT);
     mgos_gpio_write(cfg->cs2_gpio, 1);
-    gs.Pin = STM32_PIN_MASK(cfg->cs2_gpio);
-    HAL_GPIO_Init(stm32_gpio_port_base(cfg->cs0_gpio), &gs);
   }
 
   if (!mgos_spi_configure(c, cfg)) {
@@ -150,6 +133,12 @@ struct mgos_spi *mgos_spi_create(const struct mgos_config_spi *cfg) {
        mgos_gpio_str(cfg->mosi_gpio, b2), mgos_gpio_str(cfg->sclk_gpio, b3),
        mgos_gpio_str(cfg->cs0_gpio, b4), mgos_gpio_str(cfg->cs1_gpio, b5),
        mgos_gpio_str(cfg->cs2_gpio, b6)));
+  (void) b1;
+  (void) b2;
+  (void) b3;
+  (void) b4;
+  (void) b5;
+  (void) b6;
   return c;
 
 out_err:
