@@ -35,6 +35,8 @@ struct mgos_spi {
   int sclk_gpio;
   int cs_gpio[3];
   volatile SPI_TypeDef *regs;
+  volatile uint32_t *apb_en_reg;
+  uint32_t apb_en_bit;
   unsigned int mode : 2;
   unsigned int debug : 1;
 };
@@ -42,44 +44,94 @@ struct mgos_spi {
 struct mgos_spi *mgos_spi_create(const struct mgos_config_spi *cfg) {
   struct mgos_spi *c = (struct mgos_spi *) calloc(1, sizeof(*c));
   if (c == NULL) goto out_err;
+  volatile uint32_t *apb_en_reg, *apb_rst_reg;
+  uint32_t apb_en_bit, apb_rst_bit;
 
   switch (cfg->unit_no) {
     case 1:
       c->regs = SPI1;
-      __HAL_RCC_SPI1_CLK_ENABLE();
-      __HAL_RCC_SPI1_FORCE_RESET();
-      __HAL_RCC_SPI1_RELEASE_RESET();
+#ifdef RCC_APB1ENR_SPI1EN
+      apb_en_reg = &RCC->APB1ENR;
+      apb_en_bit = RCC_APB1ENR_SPI1EN;
+      apb_rst_reg = &RCC->APB1RSTR;
+      apb_rst_bit = RCC_APB1RSTR_SPI1RST;
+#else
+      apb_en_reg = &RCC->APB2ENR;
+      apb_en_bit = RCC_APB2ENR_SPI1EN;
+      apb_rst_reg = &RCC->APB2RSTR;
+      apb_rst_bit = RCC_APB2RSTR_SPI1RST;
+#endif
       break;
     case 2:
       c->regs = SPI2;
-      __HAL_RCC_SPI2_CLK_ENABLE();
-      __HAL_RCC_SPI2_FORCE_RESET();
-      __HAL_RCC_SPI2_RELEASE_RESET();
+#ifdef RCC_APB1ENR_SPI2EN
+      apb_en_reg = &RCC->APB1ENR;
+      apb_en_bit = RCC_APB1ENR_SPI2EN;
+      apb_rst_reg = &RCC->APB1RSTR;
+      apb_rst_bit = RCC_APB1RSTR_SPI2RST;
+#else
+      apb_en_reg = &RCC->APB2ENR;
+      apb_en_bit = RCC_APB2ENR_SPI2EN;
+      apb_rst_reg = &RCC->APB2RSTR;
+      apb_rst_bit = RCC_APB2RSTR_SPI2RST;
+#endif
       break;
     case 3:
       c->regs = SPI3;
-      __HAL_RCC_SPI3_CLK_ENABLE();
-      __HAL_RCC_SPI3_FORCE_RESET();
-      __HAL_RCC_SPI3_RELEASE_RESET();
+#ifdef RCC_APB1ENR_SPI3EN
+      apb_en_reg = &RCC->APB1ENR;
+      apb_en_bit = RCC_APB1ENR_SPI3EN;
+      apb_rst_reg = &RCC->APB1RSTR;
+      apb_rst_bit = RCC_APB1RSTR_SPI3RST;
+#else
+      apb_en_reg = &RCC->APB2ENR;
+      apb_en_bit = RCC_APB2ENR_SPI3EN;
+      apb_rst_reg = &RCC->APB2RSTR;
+      apb_rst_bit = RCC_APB2RSTR_SPI3RST;
+#endif
       break;
     case 4:
       c->regs = SPI4;
-      __HAL_RCC_SPI4_CLK_ENABLE();
-      __HAL_RCC_SPI4_FORCE_RESET();
-      __HAL_RCC_SPI4_RELEASE_RESET();
+#ifdef RCC_APB1ENR_SPI4EN
+      apb_en_reg = &RCC->APB1ENR;
+      apb_en_bit = RCC_APB1ENR_SPI4EN;
+      apb_rst_reg = &RCC->APB1RSTR;
+      apb_rst_bit = RCC_APB1RSTR_SPI4RST;
+#else
+      apb_en_reg = &RCC->APB2ENR;
+      apb_en_bit = RCC_APB2ENR_SPI4EN;
+      apb_rst_reg = &RCC->APB2RSTR;
+      apb_rst_bit = RCC_APB2RSTR_SPI4RST;
+#endif
       break;
     case 5:
       c->regs = SPI5;
-      __HAL_RCC_SPI5_CLK_ENABLE();
-      __HAL_RCC_SPI5_FORCE_RESET();
-      __HAL_RCC_SPI5_RELEASE_RESET();
+#ifdef RCC_APB1ENR_SPI5EN
+      apb_en_reg = &RCC->APB1ENR;
+      apb_en_bit = RCC_APB1ENR_SPI5EN;
+      apb_rst_reg = &RCC->APB1RSTR;
+      apb_rst_bit = RCC_APB1RSTR_SPI5RST;
+#else
+      apb_en_reg = &RCC->APB2ENR;
+      apb_en_bit = RCC_APB2ENR_SPI5EN;
+      apb_rst_reg = &RCC->APB2RSTR;
+      apb_rst_bit = RCC_APB2RSTR_SPI5RST;
+#endif
       break;
 #ifdef SPI6
     case 6:
       c->regs = SPI6;
-      __HAL_RCC_SPI6_CLK_ENABLE();
-      __HAL_RCC_SPI6_FORCE_RESET();
-      __HAL_RCC_SPI6_RELEASE_RESET();
+#ifdef RCC_APB1ENR_SPI6EN
+      apb_en_reg = &RCC->APB1ENR;
+      apb_en_bit = RCC_APB1ENR_SPI6EN;
+      apb_rst_reg = &RCC->APB1RSTR;
+      apb_rst_bit = RCC_APB1RSTR_SPI6RST;
+#else
+      apb_en_reg = &RCC->APB2ENR;
+      apb_en_bit = RCC_APB2ENR_SPI6EN;
+      apb_rst_reg = &RCC->APB2RSTR;
+      apb_rst_bit = RCC_APB2RSTR_SPI6RST;
+#endif
       break;
 #endif
     default:
@@ -93,6 +145,12 @@ struct mgos_spi *mgos_spi_create(const struct mgos_config_spi *cfg) {
                    cfg->miso_gpio, cfg->mosi_gpio));
     goto out_err;
   }
+
+  *apb_en_reg |= apb_en_bit;
+  *apb_rst_reg |= apb_rst_bit;
+  c->apb_en_reg = apb_en_reg;
+  c->apb_en_bit = apb_en_bit;
+  *apb_rst_reg &= ~apb_rst_bit;
 
   if (cfg->miso_gpio >= 0) {
     mgos_gpio_set_mode(cfg->miso_gpio, MGOS_GPIO_MODE_INPUT);
@@ -344,5 +402,7 @@ bool mgos_spi_run_txn(struct mgos_spi *c, bool full_duplex,
 }
 
 void mgos_spi_close(struct mgos_spi *c) {
+  if (c == NULL) return;
+  *c->apb_en_reg &= ~c->apb_en_bit;
   free(c);
 }
