@@ -281,7 +281,7 @@ static bool stm32_spi_set_freq(struct mgos_spi *c, int freq) {
     default:
       return false;
   }
-  uint32_t br = 0, div = 0;
+  uint32_t br = 0;
   eff_freq /= 2;
   while (eff_freq > freq) {
     br++;
@@ -289,11 +289,10 @@ static bool stm32_spi_set_freq(struct mgos_spi *c, int freq) {
     if (br > 7) return false;
   }
   MODIFY_REG(c->regs->CR1, SPI_CR1_BR_Msk, br << SPI_CR1_BR_Pos);
-  div = (1 << (br + 1));
   c->freq = freq;
   if (c->debug) {
     LOG(LL_DEBUG, ("freq %d => div %d (br %d) => eff_freq %d", c->freq,
-                   (int) div, (int) br, eff_freq));
+                   (int) (1 << (br + 1)), (int) br, eff_freq));
   }
   return true;
 }
