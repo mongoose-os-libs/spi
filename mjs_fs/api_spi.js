@@ -95,7 +95,7 @@ let SPI = {
       if (!fdp.tx_data) return false;
       tx_data = fdp.tx_data;
       rx_len = tx_data.length;
-      if (rx_len == 0) return false;
+      if (rx_len === 0) return false;
       /* This string must survive between calls to _sfd and _run,
        * force it to be un-inlined. Bleh. */
       if (tx_data.length < 6) tx_data += "      ";
