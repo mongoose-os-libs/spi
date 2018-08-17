@@ -52,92 +52,125 @@ struct mgos_spi *mgos_spi_create(const struct mgos_config_spi *cfg) {
   uint32_t apb_en_bit, apb_rst_bit;
 
   switch (cfg->unit_no) {
+#ifdef SPI1
     case 1:
       c->regs = SPI1;
-#ifdef RCC_APB1ENR_SPI1EN
+#if defined(RCC_APB1ENR_SPI1EN)
       apb_en_reg = &RCC->APB1ENR;
       apb_en_bit = RCC_APB1ENR_SPI1EN;
       apb_rst_reg = &RCC->APB1RSTR;
       apb_rst_bit = RCC_APB1RSTR_SPI1RST;
-#else
+#elif defined(RCC_APB2ENR_SPI1EN)
       apb_en_reg = &RCC->APB2ENR;
       apb_en_bit = RCC_APB2ENR_SPI1EN;
       apb_rst_reg = &RCC->APB2RSTR;
       apb_rst_bit = RCC_APB2RSTR_SPI1RST;
+#else
+#error Unknown SPI1 APB config
 #endif
       break;
+#endif /* SPI1 */
+#ifdef SPI2
     case 2:
       c->regs = SPI2;
-#ifdef RCC_APB1ENR_SPI2EN
+#if defined(RCC_APB1ENR_SPI2EN)
       apb_en_reg = &RCC->APB1ENR;
       apb_en_bit = RCC_APB1ENR_SPI2EN;
       apb_rst_reg = &RCC->APB1RSTR;
       apb_rst_bit = RCC_APB1RSTR_SPI2RST;
-#else
+#elif defined(RCC_APB1ENR1_SPI2EN)
+      apb_en_reg = &RCC->APB1ENR1;
+      apb_en_bit = RCC_APB1ENR1_SPI2EN;
+      apb_rst_reg = &RCC->APB1RSTR1;
+      apb_rst_bit = RCC_APB1RSTR1_SPI2RST;
+#elif defined(RCC_APB2ENR_SPI2EN)
       apb_en_reg = &RCC->APB2ENR;
       apb_en_bit = RCC_APB2ENR_SPI2EN;
       apb_rst_reg = &RCC->APB2RSTR;
       apb_rst_bit = RCC_APB2RSTR_SPI2RST;
+#else
+#error Unknown SPI2 APB config
 #endif
       break;
+#endif /* SPI2 */
+#ifdef SPI3
     case 3:
       c->regs = SPI3;
-#ifdef RCC_APB1ENR_SPI3EN
+#if defined(RCC_APB1ENR_SPI3EN)
       apb_en_reg = &RCC->APB1ENR;
       apb_en_bit = RCC_APB1ENR_SPI3EN;
       apb_rst_reg = &RCC->APB1RSTR;
       apb_rst_bit = RCC_APB1RSTR_SPI3RST;
-#else
+#elif defined(RCC_APB1ENR1_SPI3EN)
+      apb_en_reg = &RCC->APB1ENR1;
+      apb_en_bit = RCC_APB1ENR1_SPI3EN;
+      apb_rst_reg = &RCC->APB1RSTR1;
+      apb_rst_bit = RCC_APB1RSTR1_SPI3RST;
+#elif defined(RCC_APB2ENR_SPI3EN)
       apb_en_reg = &RCC->APB2ENR;
       apb_en_bit = RCC_APB2ENR_SPI3EN;
       apb_rst_reg = &RCC->APB2RSTR;
       apb_rst_bit = RCC_APB2RSTR_SPI3RST;
+#else
+#error Unknown SPI3 APB config
 #endif
       break;
+#endif /* SPI3 */
+#ifdef SPI4
     case 4:
       c->regs = SPI4;
-#ifdef RCC_APB1ENR_SPI4EN
+#if defined(RCC_APB1ENR_SPI4EN)
       apb_en_reg = &RCC->APB1ENR;
       apb_en_bit = RCC_APB1ENR_SPI4EN;
       apb_rst_reg = &RCC->APB1RSTR;
       apb_rst_bit = RCC_APB1RSTR_SPI4RST;
-#else
+#elif defined(RCC_APB2ENR_SPI4EN)
       apb_en_reg = &RCC->APB2ENR;
       apb_en_bit = RCC_APB2ENR_SPI4EN;
       apb_rst_reg = &RCC->APB2RSTR;
       apb_rst_bit = RCC_APB2RSTR_SPI4RST;
+#else
+#error Unknown SPI4 APB config
 #endif
       break;
+#endif /* SPI4 */
+#ifdef SPI5
     case 5:
       c->regs = SPI5;
-#ifdef RCC_APB1ENR_SPI5EN
+#if defined(RCC_APB1ENR_SPI5EN)
       apb_en_reg = &RCC->APB1ENR;
       apb_en_bit = RCC_APB1ENR_SPI5EN;
       apb_rst_reg = &RCC->APB1RSTR;
       apb_rst_bit = RCC_APB1RSTR_SPI5RST;
-#else
+#elif defined(RCC_APB2ENR_SPI5EN)
       apb_en_reg = &RCC->APB2ENR;
       apb_en_bit = RCC_APB2ENR_SPI5EN;
       apb_rst_reg = &RCC->APB2RSTR;
       apb_rst_bit = RCC_APB2RSTR_SPI5RST;
+#else
+#error Unknown SPI5 APB config
 #endif
       break;
+#endif /* SPI5 */
 #ifdef SPI6
     case 6:
       c->regs = SPI6;
-#ifdef RCC_APB1ENR_SPI6EN
+#if defined(RCC_APB1ENR_SPI6EN)
       apb_en_reg = &RCC->APB1ENR;
       apb_en_bit = RCC_APB1ENR_SPI6EN;
       apb_rst_reg = &RCC->APB1RSTR;
       apb_rst_bit = RCC_APB1RSTR_SPI6RST;
-#else
+#elif defined(RCC_APB2ENR_SPI6EN)
       apb_en_reg = &RCC->APB2ENR;
       apb_en_bit = RCC_APB2ENR_SPI6EN;
       apb_rst_reg = &RCC->APB2RSTR;
       apb_rst_bit = RCC_APB2RSTR_SPI6RST;
+#else
+#error Unknown SPI6 APB config
 #endif
       break;
-#endif
+#endif /* SPI6 */
+#ifdef QUADSPI
     case STM32_QSPI_UNIT_NO:
       c->qregs = QUADSPI;
       apb_en_reg = &RCC->AHB3ENR;
@@ -145,6 +178,7 @@ struct mgos_spi *mgos_spi_create(const struct mgos_config_spi *cfg) {
       apb_rst_reg = &RCC->AHB3RSTR;
       apb_rst_bit = RCC_AHB3RSTR_QSPIRST;
       break;
+#endif /* QUADSPI */
     default:
       LOG(LL_ERROR, ("Invalid unit_no %d", cfg->unit_no));
       goto out_err;
@@ -434,7 +468,10 @@ static bool stm32_spi_run_txn_hd(struct mgos_spi *c,
 }
 
 static inline uint32_t qspi_fifo_len(const struct mgos_spi *c) {
-  return ((c->qregs->SR & QUADSPI_SR_FLEVEL_Msk) >> QUADSPI_SR_FLEVEL_Pos);
+/* NB: QUADSPI_SR_FLEVEL_Msk is defined as 0x1F << QUADSPI_SR_FLEVEL_Pos
+ * which is incorrect. The field is actually 6 bits wide! */
+#define QUADSPI_SR_FLEVEL_Msk_2 (0x3FU << QUADSPI_SR_FLEVEL_Pos)
+  return ((c->qregs->SR & QUADSPI_SR_FLEVEL_Msk_2) >> QUADSPI_SR_FLEVEL_Pos);
 }
 
 static bool stm32_qspi_run_txn_hd(struct mgos_spi *c,

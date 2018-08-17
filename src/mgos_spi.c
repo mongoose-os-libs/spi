@@ -33,8 +33,5 @@ struct mgos_spi *mgos_spi_get_global(void) {
 
 bool mgos_spi_config_from_json(const struct mg_str cfg_json,
                                struct mgos_config_spi *cfg) {
-  const struct mg_str json_cfg =
-      MG_MK_STR("{\"enable\": true, \"unit_no\": 1}");
-  mgos_sys_config_parse_sub(json_cfg, "spi", cfg);
   return mgos_sys_config_parse_sub(cfg_json, "spi", cfg);
 }
