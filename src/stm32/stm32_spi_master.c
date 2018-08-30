@@ -265,8 +265,14 @@ static inline bool is_qspi(const struct mgos_spi *c) {
 bool mgos_spi_configure(struct mgos_spi *c, const struct mgos_config_spi *cfg) {
   if (!is_qspi(c)) {
     /* Reset everything and disable. Enable manual SS control. */
-    c->regs->CR1 = SPI_CR1_MSTR | SPI_CR1_SSM | SPI_CR1_SSI;
-    c->regs->CR2 = 0;
+    uint32_t cr1 = SPI_CR1_MSTR | SPI_CR1_SSM | SPI_CR1_SSI;
+    uint32_t cr2 = 0;
+#ifdef SPI_CR2_DS_Pos
+    /* Configure 8-bit transfers. */
+    cr2 |= SPI_CR2_FRXTH | (7 << SPI_CR2_DS_Pos);
+#endif
+    c->regs->CR1 = cr1;
+    c->regs->CR2 = cr2;
   } else {
     c->qregs->CR = 0;
     c->qregs->DCR = 0;
@@ -378,22 +384,28 @@ inline static void stm32_spi_wait_tx_idle(struct mgos_spi *c) {
   }
 }
 
+inline static void stm32_spi_empty_rx_fifo(struct mgos_spi *c) {
+  while ((c->regs->SR & SPI_SR_FRLVL) != 0) {
+    (void) c->regs->DR;
+  }
+}
+
 static bool stm32_spi_run_txn_fd(struct mgos_spi *c,
                                  const struct mgos_spi_txn *txn) {
   size_t len = txn->fd.len;
   const uint8_t *tx_data = (const uint8_t *) txn->hd.tx_data;
   uint8_t *rx_data = (uint8_t *) txn->fd.rx_data;
-  if (c->debug) {
-    LOG(LL_DEBUG, ("len %d", (int) len));
-  }
+
+  if (c->debug) LOG(LL_DEBUG, ("len %d", (int) len));
 
   /* Clear MODF error, if any, by reading SR. */;
   (void) c->regs->SR;
   /* Enable SPI in master mode with software SS control
    * (at this point CSx is already asserted). */
+  stm32_spi_empty_rx_fifo(c);
   SET_BIT(c->regs->CR1, SPI_CR1_MSTR | SPI_CR1_SSM | SPI_CR1_SSI | SPI_CR1_SPE);
 
-  uint8_t byte = c->regs->DR; /* Clear the OVR flag (if any). */
+  uint8_t byte = 0;
   while (len > 0) {
     byte = *tx_data++;
     stm32_spi_wait_tx_empty(c);
@@ -426,6 +438,7 @@ static bool stm32_spi_run_txn_hd(struct mgos_spi *c,
   (void) c->regs->SR;
   /* Enable SPI in master mode with software SS control
    * (at this point CSx is already asserted). */
+  stm32_spi_empty_rx_fifo(c);
   SET_BIT(c->regs->CR1, SPI_CR1_MSTR | SPI_CR1_SSM | SPI_CR1_SSI | SPI_CR1_SPE);
 
   uint8_t byte;
@@ -552,9 +565,10 @@ bool mgos_spi_run_txn(struct mgos_spi *c, bool full_duplex,
     mgos_gpio_write(cs_gpio, 1);
   }
   if (is_qspi(c)) {
-    CLEAR_BIT(c->regs->CR1, SPI_CR1_SPE);
-  } else {
     CLEAR_BIT(c->qregs->CR, QUADSPI_CR_EN);
+  } else {
+    CLEAR_BIT(c->regs->CR1, SPI_CR1_SPE);
+    stm32_spi_empty_rx_fifo(c);
   }
   return ret;
 }
