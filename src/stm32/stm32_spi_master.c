@@ -384,17 +384,12 @@ inline static void stm32_spi_wait_tx_idle(struct mgos_spi *c) {
   }
 }
 
-inline static void stm32_spi_empty_rx_fifo(struct mgos_spi *c) {
-  while ((c->regs->SR & SPI_SR_FRLVL) != 0) {
-    (void) c->regs->DR;
-  }
-}
-
 static bool stm32_spi_run_txn_fd(struct mgos_spi *c,
                                  const struct mgos_spi_txn *txn) {
   size_t len = txn->fd.len;
   const uint8_t *tx_data = (const uint8_t *) txn->hd.tx_data;
   uint8_t *rx_data = (uint8_t *) txn->fd.rx_data;
+  volatile uint8_t *drp = (volatile uint8_t *) &c->regs->DR;
 
   if (c->debug) LOG(LL_DEBUG, ("len %d", (int) len));
 
@@ -402,20 +397,20 @@ static bool stm32_spi_run_txn_fd(struct mgos_spi *c,
   (void) c->regs->SR;
   /* Enable SPI in master mode with software SS control
    * (at this point CSx is already asserted). */
-  stm32_spi_empty_rx_fifo(c);
-  SET_BIT(c->regs->CR1, SPI_CR1_MSTR | SPI_CR1_SSM | SPI_CR1_SSI | SPI_CR1_SPE);
+  SET_BIT(c->regs->CR1, SPI_CR1_SPE);
 
-  uint8_t byte = 0;
   while (len > 0) {
-    byte = *tx_data++;
+    uint8_t byte = *tx_data++;
     stm32_spi_wait_tx_empty(c);
     if (c->debug) LOG(LL_DEBUG, ("write 0x%02x", byte));
-    c->regs->DR = byte;
+    *drp = byte;
     while (!(c->regs->SR & SPI_SR_RXNE)) {
     }
-    byte = c->regs->DR;
-    if (c->debug) LOG(LL_DEBUG, ("read 0x%02x", byte));
-    *rx_data++ = byte;
+    while ((c->regs->SR & SPI_SR_RXNE)) {
+      byte = *drp;
+      if (c->debug) LOG(LL_DEBUG, ("read 0x%02x", byte));
+      *rx_data++ = byte;
+    }
     len--;
   }
 
@@ -429,6 +424,7 @@ static bool stm32_spi_run_txn_hd(struct mgos_spi *c,
   size_t dummy_len = txn->hd.dummy_len;
   uint8_t *rx_data = (uint8_t *) txn->hd.rx_data;
   size_t rx_len = txn->hd.rx_len;
+  volatile uint8_t *drp = (volatile uint8_t *) &c->regs->DR;
   if (c->debug) {
     LOG(LL_DEBUG, ("tx_len %d dummy_len %d rx_len %d", (int) tx_len,
                    (int) dummy_len, (int) rx_len));
@@ -438,7 +434,6 @@ static bool stm32_spi_run_txn_hd(struct mgos_spi *c,
   (void) c->regs->SR;
   /* Enable SPI in master mode with software SS control
    * (at this point CSx is already asserted). */
-  stm32_spi_empty_rx_fifo(c);
   SET_BIT(c->regs->CR1, SPI_CR1_MSTR | SPI_CR1_SSM | SPI_CR1_SSI | SPI_CR1_SPE);
 
   uint8_t byte;
@@ -446,14 +441,14 @@ static bool stm32_spi_run_txn_hd(struct mgos_spi *c,
     byte = *tx_data++;
     stm32_spi_wait_tx_empty(c);
     if (c->debug) LOG(LL_DEBUG, ("write 0x%02x", byte));
-    c->regs->DR = byte;
+    *drp = byte;
     tx_len--;
   }
 
   while (dummy_len > 0) {
     /* Clock is only output when there's data to transmit so we send out 0s. */
     stm32_spi_wait_tx_empty(c);
-    c->regs->DR = 0;
+    *drp = 0;
     dummy_len--;
   }
 
@@ -465,10 +460,10 @@ static bool stm32_spi_run_txn_hd(struct mgos_spi *c,
     do {
       stm32_spi_wait_tx_empty(c);
       /* Dummy data to provide clock. */
-      c->regs->DR = 0;
+      *drp = 0;
       while (!(c->regs->SR & SPI_SR_RXNE)) {
       }
-      byte = c->regs->DR;
+      byte = *drp;
       if (c->debug) LOG(LL_DEBUG, ("read 0x%02x", byte));
       *rx_data++ = byte;
       rx_len--;
@@ -568,7 +563,6 @@ bool mgos_spi_run_txn(struct mgos_spi *c, bool full_duplex,
     CLEAR_BIT(c->qregs->CR, QUADSPI_CR_EN);
   } else {
     CLEAR_BIT(c->regs->CR1, SPI_CR1_SPE);
-    stm32_spi_empty_rx_fifo(c);
   }
   return ret;
 }
