@@ -391,7 +391,9 @@ static bool stm32_spi_run_txn_fd(struct mgos_spi *c,
   uint8_t *rx_data = (uint8_t *) txn->fd.rx_data;
   volatile uint8_t *drp = (volatile uint8_t *) &c->regs->DR;
 
-  if (c->debug) LOG(LL_DEBUG, ("len %d", (int) len));
+  if (c->debug) {
+    LOG(LL_DEBUG, ("len %d", (int) len));
+  }
 
   /* Clear MODF error, if any, by reading SR. */;
   (void) c->regs->SR;
@@ -402,13 +404,17 @@ static bool stm32_spi_run_txn_fd(struct mgos_spi *c,
   while (len > 0) {
     uint8_t byte = *tx_data++;
     stm32_spi_wait_tx_empty(c);
-    if (c->debug) LOG(LL_DEBUG, ("write 0x%02x", byte));
+    if (c->debug) {
+      LOG(LL_DEBUG, ("write 0x%02x", byte));
+    }
     *drp = byte;
     while (!(c->regs->SR & SPI_SR_RXNE)) {
     }
     while ((c->regs->SR & SPI_SR_RXNE)) {
       byte = *drp;
-      if (c->debug) LOG(LL_DEBUG, ("read 0x%02x", byte));
+      if (c->debug) {
+        LOG(LL_DEBUG, ("read 0x%02x", byte));
+      }
       *rx_data++ = byte;
     }
     len--;
@@ -440,7 +446,9 @@ static bool stm32_spi_run_txn_hd(struct mgos_spi *c,
   while (tx_len > 0) {
     byte = *tx_data++;
     stm32_spi_wait_tx_empty(c);
-    if (c->debug) LOG(LL_DEBUG, ("write 0x%02x", byte));
+    if (c->debug) {
+      LOG(LL_DEBUG, ("write 0x%02x", byte));
+    }
     *drp = byte;
     tx_len--;
   }
@@ -464,7 +472,9 @@ static bool stm32_spi_run_txn_hd(struct mgos_spi *c,
       while (!(c->regs->SR & SPI_SR_RXNE)) {
       }
       byte = *drp;
-      if (c->debug) LOG(LL_DEBUG, ("read 0x%02x", byte));
+      if (c->debug) {
+        LOG(LL_DEBUG, ("read 0x%02x", byte));
+      }
       *rx_data++ = byte;
       rx_len--;
     } while (rx_len > 0);
