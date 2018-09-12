@@ -378,12 +378,6 @@ inline static void stm32_spi_wait_tx_empty(struct mgos_spi *c) {
   }
 }
 
-inline static void stm32_spi_wait_tx_idle(struct mgos_spi *c) {
-  stm32_spi_wait_tx_empty(c);
-  while (c->regs->SR & SPI_SR_BSY) {
-  }
-}
-
 static bool stm32_spi_run_txn_fd(struct mgos_spi *c,
                                  const struct mgos_spi_txn *txn) {
   size_t len = txn->fd.len;
@@ -460,11 +454,16 @@ static bool stm32_spi_run_txn_hd(struct mgos_spi *c,
     dummy_len--;
   }
 
+  /* Wait for tx_data and dummy bytes to finish transmitting. */
+  stm32_spi_wait_tx_empty(c);
+  while (c->regs->SR & SPI_SR_BSY) {
+  }
+  /* Empty the RX FIFO */
+  while ((c->regs->SR & SPI_SR_FRLVL) != 0) {
+    byte = (uint8_t) c->regs->DR;
+  }
+
   if (rx_len > 0) {
-    /* Wait for tx_data and dummy bytes to finish transmitting. */
-    stm32_spi_wait_tx_idle(c);
-    /* Clear the OVR flag. */
-    byte = c->regs->DR;
     do {
       stm32_spi_wait_tx_empty(c);
       /* Dummy data to provide clock. */
@@ -476,11 +475,14 @@ static bool stm32_spi_run_txn_hd(struct mgos_spi *c,
         LOG(LL_DEBUG, ("read 0x%02x", byte));
       }
       *rx_data++ = byte;
+      if ((c->regs->SR & SPI_SR_RXNE)) {
+        /* We expect exactly one byte RX for one byte TX.
+         * Something went out of sync. */
+        return false;
+      }
       rx_len--;
     } while (rx_len > 0);
   }
-
-  stm32_spi_wait_tx_idle(c);
 
   return true;
 }
