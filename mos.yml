@@ -40,6 +40,7 @@ tags:
   - js
   - spi
   - core
+  - docs:core:SPI
 
 manifest_version: 2018-06-20
 no_implicit_init_deps: true
