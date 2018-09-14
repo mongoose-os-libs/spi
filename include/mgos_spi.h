@@ -15,13 +15,6 @@
  * limitations under the License.
  */
 
-/*
- * SPI API.
- *
- * See https://en.wikipedia.org/wiki/Serial_Peripheral_Interface_Bus
- * for the background information.
- */
-
 #ifndef CS_FW_SRC_MGOS_SPI_H_
 #define CS_FW_SRC_MGOS_SPI_H_
 
