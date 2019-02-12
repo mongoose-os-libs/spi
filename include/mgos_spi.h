@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-#ifndef CS_FW_SRC_MGOS_SPI_H_
-#define CS_FW_SRC_MGOS_SPI_H_
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -106,5 +105,3 @@ bool mgos_spi_config_from_json(const struct mg_str cfg_json,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* CS_FW_SRC_MGOS_SPI_H_ */
