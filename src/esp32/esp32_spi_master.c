@@ -76,7 +76,7 @@ struct mgos_spi *mgos_spi_create(const struct mgos_config_spi *cfg) {
     goto out_err;
   }
 
-  if (!spicommon_periph_claim(c->host)) {
+  if (!spicommon_periph_claim(c->host, __FUNCTION__)) {
     LOG(LL_ERROR, ("Failed to claim SPI%d (host %d)", cfg->unit_no, c->host));
     goto out_err;
   }
