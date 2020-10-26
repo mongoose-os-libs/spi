@@ -102,6 +102,7 @@ bool stm32_gspi_run_txn_fd(struct mgos_spi *c, const struct mgos_spi_txn *txn) {
   size_t len = txn->fd.len;
   const uint8_t *tx_data = (const uint8_t *) txn->hd.tx_data;
   uint8_t *rx_data = (uint8_t *) txn->fd.rx_data;
+  bool discard_rx = (txn->fd.rx_data == NULL);
   volatile uint8_t *drp = (volatile uint8_t *) &c->regs->DR;
 
   if (c->debug) {
@@ -128,7 +129,9 @@ bool stm32_gspi_run_txn_fd(struct mgos_spi *c, const struct mgos_spi_txn *txn) {
       if (c->debug) {
         LOG(LL_DEBUG, ("read 0x%02x", byte));
       }
-      *rx_data++ = byte;
+      if(!discard_rx) {
+        *rx_data++ = byte;
+      }
     }
     len--;
   }
