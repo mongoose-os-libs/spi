@@ -100,7 +100,7 @@ inline static void stm32_gspi_wait_tx_empty(struct mgos_spi *c) {
 
 bool stm32_gspi_run_txn_fd(struct mgos_spi *c, const struct mgos_spi_txn *txn) {
   size_t len = txn->fd.len;
-  const uint8_t *tx_data = (const uint8_t *) txn->hd.tx_data;
+  const uint8_t *tx_data = (const uint8_t *) txn->fd.tx_data;
   uint8_t *rx_data = (uint8_t *) txn->fd.rx_data;
   volatile uint8_t *drp = (volatile uint8_t *) &c->regs->DR;
 
