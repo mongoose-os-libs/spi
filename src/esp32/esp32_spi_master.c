@@ -264,9 +264,7 @@ static void esp32_spi_get_rx_data(spi_dev_t *dev, uint8_t *data, size_t skip,
       if (skip > 0) {
         skip--;
       } else {
-        if (NULL != data) {
-          data[i] = byte;
-        }
+        if (data != NULL) data[i] = byte;
         ++i;
       }
       w >>= 8;
@@ -317,9 +315,7 @@ static bool mgos_spi_run_txn_fd(struct mgos_spi *c, const void *tx_data,
     }
     esp32_spi_get_rx_data(dev, rxdp, 0, dlen);
     txdp += dlen;
-    if (NULL != rxdp) {
-      rxdp += dlen;
-    }
+    if (rxdp != NULL) rxdp += dlen;
   }
 
   return true;

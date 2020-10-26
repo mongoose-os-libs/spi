@@ -129,9 +129,7 @@ bool stm32_gspi_run_txn_fd(struct mgos_spi *c, const struct mgos_spi_txn *txn) {
       if (c->debug) {
         LOG(LL_DEBUG, ("read 0x%02x", byte));
       }
-      if(!discard_rx) {
-        *rx_data++ = byte;
-      }
+      if (!discard_rx) *rx_data++ = byte;
     }
     len--;
   }
