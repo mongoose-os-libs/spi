@@ -24,6 +24,7 @@
 #include "esp_attr.h"
 #include "esp_intr_alloc.h"
 #include "driver/spi_common.h"
+#include "driver/spi_common_internal.h"
 #include "soc/gpio_sig_map.h"
 #include "soc/spi_reg.h"
 #include "soc/spi_struct.h"
