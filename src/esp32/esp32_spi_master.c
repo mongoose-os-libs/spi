@@ -115,7 +115,7 @@ bool mgos_spi_configure(struct mgos_spi *c, const struct mgos_config_spi *cfg) {
   };
 
   uint32_t flags_out = 0;
-  if (spicommon_bus_initialize_io(c->host, &bus_cfg, 0 /* dma_chan */,
+  if (spicommon_bus_initialize_io(c->host, &bus_cfg,
                                   SPICOMMON_BUSFLAG_MASTER,
                                   &flags_out) != ESP_OK) {
     return false;
